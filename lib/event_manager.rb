@@ -58,8 +58,42 @@ contents.each do |row|
   name = row[:first_name]
   zipcode = clean_zipcode(row[:zipcode])
   legislators = legislators_by_zipcode(zipcode)
-
+  phone_number = clean_phone_number(row[:homephone])
   form_letter = erb_template.result(binding)
 
   save_thank_you_letter(id,form_letter)
 end
+
+def most_common_reg_day
+  contents = CSV.open("event_attendees.csv", headers: true, header_converters: :symbol)
+  reg_day_array = []
+  contents.each do |row|
+    reg_date = row[:regdate]
+    reg_day = Time.strptime(reg_date, '%M/%d/%y %k:%M').strftime('%A')
+    reg_day_array.push(reg_day)
+  end
+  most_common_day = reg_day_array.reduce(Hash.new(0)) do |hash, day|
+    hash[day] += 1
+    hash
+  end
+  most_common_day.max_by { |_k, v| v }[0]
+end
+
+def most_common_hour
+  contents = CSV.open("event_attendees.csv", headers: true, header_converters: :symbol)
+  reg_hour_array = []
+  contents.each do |row|
+      reg_date = row[:regdate]
+      reg_hour = Time.strptime(reg_date, '%M/%d/%y %k:%M').strftime('%k')
+      reg_hour_array.push(reg_hour)
+  end
+  most_common_hour = reg_hour_array.reduce(Hash.new(0)) do |hash, hour|
+      hash[hour] += 1
+      hash
+  end
+  most_common_hour.max_by { |_k, v| v }[0]
+end
+
+puts "\nThe most common hour of registration is: #{most_common_hour}:00"
+
+puts "\nThe most common registration day is: #{most_common_reg_day}"
